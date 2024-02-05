@@ -1,29 +1,67 @@
-const users = [];
+const sqlite3 = require('sqlite3').verbose();
 
-const addUser = ({ id, name, room }) => {
+const db = new sqlite3.Database('database.db');
+
+db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid INTEGER,
+    name TEXT,
+    room TEXT
+)`);
+
+const addUser = async ({ id, name, room }) => {
     name = name.trim().toLowerCase();
     room = room.trim().toLowerCase();
 
-    const existingUser = users.find((user) => user.room == room && user.name == name);
-    if(existingUser){
-        return { error: 'Username is taken' };
-    }
-    
-    const user = {id, name, room};
-    users.push(user);
-    return { user }
+    return new Promise((resolve, reject) => {
+        const query = `INSERT INTO users (userid, name, room) VALUES (?, ?, ?)`;
+        db.run(query, [id, name, room], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(this.changes > 0);
+            }
+        });
+    });
+};
 
-}
+const getUser = async (userid) => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT name, room FROM users WHERE userid = ?`;
+        db.get(query, [userid], (err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+};
 
-const removeUser = (id) => {
-    const index = users.findIndex((user) => user.id == id);
-    if(index != -1){
-        return users.splice(index, 1)[0];
-    }
-}
+const getUsersInRoom = async (room) => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM users WHERE room = ?`;
+        db.all(query, [room], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
 
-const getUser = (id) => users.find((user) => user.id == id);
+const removeUser = async (id) => {
+    return new Promise((resolve, reject) => {
+        const query = `DELETE FROM users WHERE userid = ?`;
+        db.run(query, [id], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(this.changes > 0);
+            }
+        });
+    });
+};
 
-const getUsersInRoom = (room) => users.find((user) => user.room == room);
-
-module.exports = {addUser, removeUser, getUser, getUsersInRoom}
+module.exports = { addUser, removeUser, getUser, getUsersInRoom };
