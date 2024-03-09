@@ -3,7 +3,7 @@ const express = require('express');
 const socketio = require('socket.io');
 const cors = require('cors');
 
-const { addUser, removeUser, getUser, getUsersInRoom } = require('./users');
+const { addMessage } = require('./users');
 
 const router = require('./router');
 
@@ -21,16 +21,14 @@ app.use(cors());
 app.use(router);
 
 io.on('connect', (socket) => {
-  socket.on('join', async ({ name, room }, callback) => {
+  socket.on('join', async ({ user_name, user_room }, callback) => {
     try {
-      await addUser({ id: socket.id, name, room });
+      await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: "dummy" });
 
-      socket.join(room);
+      socket.join(user_room);
 
-      socket.emit('message', { user: 'admin', text: `${name}, welcome to room ${room}.`});
-      socket.broadcast.to(room).emit('message', { user: 'admin', text: `${name} has joined!` });
-
-      io.to(room).emit('roomData', { room: room, users: await getUsersInRoom(room) });
+      io.to(user_room).emit('message', { message: { message_id: -1, message_text: `${user_name}, welcome to room ${user_room}.`, message_sender: "admin" } });
+      socket.broadcast.to(user_room).emit('message', { message: { message_id: -1, message_text: `${user_name} has joined.`, message_sender: "admin" } });
 
       callback();
     } catch (error) {
@@ -39,10 +37,11 @@ io.on('connect', (socket) => {
     }
   });
 
-  socket.on('sendMessage', async (message, callback) => {
+  socket.on('sendMessage', async (user_name, user_room, message_text, callback) => {
     try {
-      const user = await getUser(socket.id);
-      io.to(user.room).emit('message', { user: user.name, text: message });
+      await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
+
+      io.to(user_room).emit('message', { message: { message_id, message_text, user_name } });
 
       callback();
     } catch (error) {
@@ -50,16 +49,8 @@ io.on('connect', (socket) => {
     }
   });
 
-  socket.on('disconnect', async () => {
-    try {
-      const user = await getUser(socket.id);
-      await removeUser(socket.id);
-      
-      io.to(user.room).emit('message', { user: 'Admin', text: `${user.name} has left.` });
-      io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room)});
-    } catch (error) {
-      console.error('Error:', error);
-    }
+  socket.on('disconnect', () => {
+      console.log(`${socket.id} disconnected`);
   })
 });
 

@@ -4,33 +4,26 @@ import './Message.css';
 
 import ReactEmoji from 'react-emoji';
 
-const Message = ({ message: { text, user }, name }) => {
-  let isSentByCurrentUser = false;
-
-  const trimmedName = name.trim().toLowerCase();
-
-  if(user === trimmedName) {
-    isSentByCurrentUser = true;
-  }
-
+const Message = ({ message: { message_id, message_text, message_sender }, current_user_name }) => {
+  let text_to_display = message_id + ": " + message_text
   return (
-    isSentByCurrentUser
+    (message_sender == current_user_name)
       ? (
         <div className="messageContainer justifyEnd">
-          <p className="sentText pr-10">{trimmedName}</p>
+          <p className="sentText pr-10">{current_user_name}</p>
           <div className="messageBox backgroundBlue">
-            <p className="messageText colorWhite">{ReactEmoji.emojify(text)}</p>
+            <p className="messageText colorWhite">{ReactEmoji.emojify(text_to_display)}</p>
           </div>
         </div>
-        )
-        : (
-          <div className="messageContainer justifyStart">
-            <div className="messageBox backgroundLight">
-              <p className="messageText colorDark">{ReactEmoji.emojify(text)}</p>
-            </div>
-            <p className="sentText pl-10 ">{user}</p>
+      )
+      : (
+        <div className="messageContainer justifyStart">
+          <div className="messageBox backgroundLight">
+            <p className="messageText colorDark">{ReactEmoji.emojify(text_to_display)}</p>
           </div>
-        )
+          <p className="sentText pl-10 ">{message_sender}</p>
+        </div>
+      )
   );
 }
 
