@@ -1,11 +1,11 @@
-const http = require('http');
-const express = require('express');
-const socketio = require('socket.io');
-const cors = require('cors');
+const http = require("http");
+const express = require("express");
+const socketio = require("socket.io");
+const cors = require("cors");
 
-const { addMessage } = require('./users');
+const { addMessage } = require("./users");
 
-const router = require('./router');
+const router = require("./router");
 
 const app = express();
 const server = http.createServer(app);
@@ -20,38 +20,28 @@ const io = socketio(server, {
 app.use(cors());
 app.use(router);
 
-io.on('connect', (socket) => {
-  socket.on('join', async ({ user_name, user_room }, callback) => {
+io.on("connect", (socket) => {
+  socket.on("join", async ({user_name, user_room}) => {
+    console.log(`${socket.id} joined`);
+    socket.join(user_room);
+    socket.emit("message", {message_id: 0, message_text: `${user_name}, welcome to room ${user_room}.`, message_sender: "admin"});
+    socket.broadcast.to(user_room).emit("message", {message_id: 0, message_text: `${user_name} has joined.`, message_sender: "admin"});
+  });
+
+  socket.on("sendMessage", async ({user_name, user_room, message_text}) => {
     try {
-      await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: "dummy" });
-
-      socket.join(user_room);
-
-      io.to(user_room).emit('message', { message: { message_id: -1, message_text: `${user_name}, welcome to room ${user_room}.`, message_sender: "admin" } });
-      socket.broadcast.to(user_room).emit('message', { message: { message_id: -1, message_text: `${user_name} has joined.`, message_sender: "admin" } });
-
-      callback();
+      const message_id = await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
+      io.to(user_room).emit("message", {message_id: message_id, message_text: message_text, message_sender: user_name});
     } catch (error) {
-      console.error('Error:', error);
-      callback(error.message);
+      console.error("Error:", error);
     }
   });
 
-  socket.on('sendMessage', async (user_name, user_room, message_text, callback) => {
-    try {
-      await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
-
-      io.to(user_room).emit('message', { message: { message_id, message_text, user_name } });
-
-      callback();
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
       console.log(`${socket.id} disconnected`);
   })
 });
 
-server.listen(process.env.PORT || 5000, () => console.log(`Server has started.`));
+server.listen(5000, () => {
+  console.log('Server running on port 5000');
+});

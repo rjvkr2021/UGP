@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-import './Input.css';
+import "./Input.css";
 
 const Input = ({ message, setMessage, sendMessage }) => (
   <form className="form">
@@ -10,7 +10,6 @@ const Input = ({ message, setMessage, sendMessage }) => (
       placeholder="Type a message..."
       value={message}
       onChange={({ target: { value } }) => setMessage(value)}
-      onClick={event => sendMessage(event)}
     />
     <button className="sendButton" onClick={event => sendMessage(event)}>Send</button>
   </form>
