@@ -33,6 +33,25 @@ function Chat(){
     });
   }, []);
 
+  useEffect(() => {
+    socket.on("editedMessage", (editedMessage) => {
+      const {originalMessage, editedMessageText} = editedMessage;
+      console.log(originalMessage);
+      console.log(editedMessageText);
+      setMessages(messages =>
+        messages.map(message =>
+          message.message_id === originalMessage.message_id
+            ? { ...message, message_text: editedMessageText }
+            : message
+        )
+      );
+    });
+  }, []);
+  
+  function editMessage(originalMessage, editedMessageText){
+    socket.emit("editMessage", {user_room: user_room, originalMessage: originalMessage, editedMessageText: editedMessageText});
+  }
+
   const sendMessage = (event) => {
     event.preventDefault();
     if(message){
@@ -45,7 +64,7 @@ function Chat(){
     <div className="outerContainer">
       <div className="container">
         <InfoBar user_room={user_room} />
-        <Messages messages={messages} current_user_name={user_name} />
+        <Messages messages={messages} current_user_name={user_name} editMessage={editMessage}/>
         <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
       </div>
     </div>

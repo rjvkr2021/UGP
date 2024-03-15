@@ -3,7 +3,7 @@ const express = require("express");
 const socketio = require("socket.io");
 const cors = require("cors");
 
-const { addMessage } = require("./users");
+// const {addMessage} = require("./users");
 
 const router = require("./router");
 
@@ -30,8 +30,18 @@ io.on("connect", (socket) => {
 
   socket.on("sendMessage", async ({user_name, user_room, message_text}) => {
     try {
-      const message_id = await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
+      // const message_id = await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
       io.to(user_room).emit("message", {message_id: message_id, message_text: message_text, message_sender: user_name});
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  });
+
+  socket.on("editMessage", async ({user_room, originalMessage, editedMessageText}) => {
+    try {
+      console.log(user_room, originalMessage, editedMessageText);
+      // const message_id = await addMessage({ socket_id: socket.id, user_name: user_name, user_room: user_room, message_text: message_text});
+      io.to(user_room).emit("editedMessage", {originalMessage, editedMessageText});
     } catch (error) {
       console.error("Error:", error);
     }

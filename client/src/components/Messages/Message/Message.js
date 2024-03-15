@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import "./Message.css";
 
-const Message = ({ message, current_user_name }) => {
+const Message = ({message, current_user_name, editMessage}) => {
   const { message_id, message_text, message_sender } = message;
   const text_to_display = `id: ${message_id} | text: ${message_text}`;
   const [isEditing, setIsEditing] = useState(false);
@@ -12,6 +12,7 @@ const Message = ({ message, current_user_name }) => {
   };
 
   const handleSaveClick = () => {
+    editMessage(message, editedMessageText);
     setIsEditing(false);
   };
 

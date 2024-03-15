@@ -23,4 +23,4 @@ const addMessage = async ({ socket_id, user_name, user_room, message_text }) => 
     });
 };
 
-module.exports = { addMessage };
+module.exports = {addMessage};
