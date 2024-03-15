@@ -11,16 +11,16 @@ db.run(`CREATE TABLE IF NOT EXISTS database (
 )`);
 
 const addMessage = async ({ socket_id, user_name, user_room, message_text }) => {
-    return new Promise((resolve, reject) => {
-        const query = `INSERT INTO database (socket_id, user_name, user_room, message_text) VALUES (?, ?, ?, ?)`;
-        db.run(query, [socket_id, user_name, user_room, message_text], function(err) {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(this.lastID);
-            }
-        });
-    });
+	return new Promise((resolve, reject) => {
+		const query = `INSERT INTO database (socket_id, user_name, user_room, message_text) VALUES (?, ?, ?, ?)`;
+		db.run(query, [socket_id, user_name, user_room, message_text], function (err) {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(this.lastID);
+			}
+		});
+	});
 };
 
-module.exports = {addMessage};
+module.exports = { addMessage };

@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from "react";
-import {useLocation} from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import queryString from "query-string";
 import io from "socket.io-client";
 
@@ -11,64 +11,64 @@ import "./Chat.css";
 
 let socket;
 
-function Chat(){
-  const location = useLocation();
-  const [user_name, set_user_name] = useState("");
-  const [user_room, set_user_room] = useState("");
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-  const ENDPOINT = "localhost:5000";
+function Chat() {
+	const location = useLocation();
+	const [user_name, set_user_name] = useState("");
+	const [user_room, set_user_room] = useState("");
+	const [message, setMessage] = useState("");
+	const [messages, setMessages] = useState([]);
+	const ENDPOINT = "localhost:5001";
 
-  useEffect(() => {
-    const {user_name, user_room} = queryString.parse(location.search);
-    socket = io(ENDPOINT);
-    set_user_room(user_room);
-    set_user_name(user_name);
-    socket.emit("join", {user_name, user_room});
-  }, [location.search]);
+	useEffect(() => {
+		const { user_name, user_room } = queryString.parse(location.search);
+		socket = io(ENDPOINT);
+		set_user_room(user_room);
+		set_user_name(user_name);
+		socket.emit("join", { user_name, user_room });
+	}, [location.search]);
 
-  useEffect(() => {
-    socket.on("message", (message) => {
-      setMessages(messages => [...messages, message]);
-    });
-  }, []);
+	useEffect(() => {
+		socket.on("message", (message) => {
+			setMessages(messages => [...messages, message]);
+		});
+	}, []);
 
-  useEffect(() => {
-    socket.on("editedMessage", (editedMessage) => {
-      const {originalMessage, editedMessageText} = editedMessage;
-      console.log(originalMessage);
-      console.log(editedMessageText);
-      setMessages(messages =>
-        messages.map(message =>
-          message.message_id === originalMessage.message_id
-            ? { ...message, message_text: editedMessageText }
-            : message
-        )
-      );
-    });
-  }, []);
-  
-  function editMessage(originalMessage, editedMessageText){
-    socket.emit("editMessage", {user_room: user_room, originalMessage: originalMessage, editedMessageText: editedMessageText});
-  }
+	useEffect(() => {
+		socket.on("editedMessage", (editedMessage) => {
+			const { originalMessage, editedMessageText } = editedMessage;
+			console.log(originalMessage);
+			console.log(editedMessageText);
+			setMessages(messages =>
+				messages.map(message =>
+					message.message_id === originalMessage.message_id
+						? { ...message, message_text: editedMessageText }
+						: message
+				)
+			);
+		});
+	}, []);
 
-  const sendMessage = (event) => {
-    event.preventDefault();
-    if(message){
-      socket.emit("sendMessage", {user_name: user_name, user_room: user_room, message_text: message});
-      setMessage("");
-    }
-  }
+	function editMessage(originalMessage, editedMessageText) {
+		socket.emit("editMessage", { user_room: user_room, originalMessage: originalMessage, editedMessageText: editedMessageText });
+	}
 
-  return (
-    <div className="outerContainer">
-      <div className="container">
-        <InfoBar user_room={user_room} />
-        <Messages messages={messages} current_user_name={user_name} editMessage={editMessage}/>
-        <Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
-      </div>
-    </div>
-  );
+	const sendMessage = (event) => {
+		event.preventDefault();
+		if (message) {
+			socket.emit("sendMessage", { user_name: user_name, user_room: user_room, message_text: message });
+			setMessage("");
+		}
+	}
+
+	return (
+		<div className="outerContainer">
+			<div className="container">
+				<InfoBar user_room={user_room} />
+				<Messages messages={messages} current_user_name={user_name} editMessage={editMessage} />
+				<Input message={message} setMessage={setMessage} sendMessage={sendMessage} />
+			</div>
+		</div>
+	);
 
 }
 
